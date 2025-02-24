@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"net"
+	"strings"
 
+	"github.com/yagyagoel1/quickdb/cmd/quickdb/handler"
 	"github.com/yagyagoel1/quickdb/utils"
 )
 
@@ -29,13 +31,28 @@ func main() {
 		}
 
 		fmt.Println(value)
-
-		_ = value
+		if value.Typ != "array" {
+			fmt.Println("invalid request , expected array")
+		}
+		if len(value.Array) == 0 {
+			fmt.Println("invalid requrest expected array length more than 0")
+		}
+		command := strings.ToUpper(value.Array[0].Bulk)
+		args := value.Array[1:]
 
 		writer := utils.NewWriter(conn)
-		writer.Write(utils.Value{Typ: "string", Str: "OK"})
+		handler, ok := handler.Handlers[command]
+		if !ok {
+			fmt.Println("invalid command", command)
+			writer.Write(utils.Value{
+				Typ: "string", Str: "",
+			})
+			continue
+		}
+		result := handler(args)
+		writer.Write(result)
 		// ignore request and send back a PONG
-		conn.Write([]byte("+OK\r\n"))
+		// conn.Write([]byte("+OK\r\n"))
 	}
 
 }
