@@ -32,7 +32,6 @@ func main() {
 
 		// ignore request and send back a PONG
 		conn.Write([]byte("+OK\r\n"))
-		conn.Write([]byte("+OK\r\n"))
 	}
 
 }
