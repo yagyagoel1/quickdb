@@ -5,7 +5,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/yagyagoel1/quickdb/cmd/quickdb/handler"
+	"github.com/yagyagoel1/quickdb/internal/handler"
 	"github.com/yagyagoel1/quickdb/utils"
 )
 
