@@ -5,6 +5,7 @@ import (
 	"net"
 	"strings"
 
+	aof "github.com/yagyagoel1/quickdb/internal/AOF"
 	"github.com/yagyagoel1/quickdb/internal/handler"
 	"github.com/yagyagoel1/quickdb/utils"
 )
@@ -16,6 +17,25 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	aof, err := aof.NewAof("database.aof")
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer aof.Close()
+
+	aof.Read(func(value utils.Value) {
+		command := strings.ToUpper(value.Array[0].Bulk)
+		args := value.Array[1:]
+		handler, ok := handler.Handlers[command]
+		if !ok {
+			fmt.Println("Invalid command: ", command)
+			return
+		}
+
+		handler(args)
+	})
 	conn, err := l.Accept()
 	if err != nil {
 		fmt.Println(err)
@@ -49,6 +69,10 @@ func main() {
 			})
 			continue
 		}
+		if command == "SET" || command == "HSET" {
+			aof.Write(value)
+		}
+
 		result := handler(args)
 		writer.Write(result)
 		// ignore request and send back a PONG
